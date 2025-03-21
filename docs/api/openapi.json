@@ -1,0 +1,405 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Teachy Authentication API",
+      "description": "API para o sistema de autenticação e gerenciamento de sessões do Teachy",
+      "version": "1.0.0",
+      "contact": {
+        "name": "Equipe Teachy",
+        "url": "https://teachy.com",
+        "email": "suporte@teachy.com"
+      }
+    },
+    "servers": [
+      {
+        "url": "http://localhost:3000",
+        "description": "Servidor de desenvolvimento"
+      }
+    ],
+    "tags": [
+      {
+        "name": "auth",
+        "description": "Endpoints de autenticação"
+      },
+      {
+        "name": "admin",
+        "description": "Endpoints administrativos"
+      }
+    ],
+    "paths": {
+      "/api/auth/check-session": {
+        "get": {
+          "tags": ["auth"],
+          "summary": "Verifica se o usuário está autenticado",
+          "description": "Verifica o status da sessão do usuário atual e retorna seus dados se estiver autenticado",
+          "responses": {
+            "200": {
+              "description": "Usuário autenticado",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "authenticated": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "user": {
+                        "$ref": "#/components/schemas/User"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Usuário não autenticado",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "authenticated": {
+                        "type": "boolean",
+                        "example": false
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Not authenticated"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/auth/callback": {
+        "get": {
+          "tags": ["auth"],
+          "summary": "Callback para autenticação OAuth",
+          "description": "Endpoint de callback para processamento de autenticação OAuth com Zitadel",
+          "parameters": [
+            {
+              "name": "code",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "description": "Código de autorização fornecido pelo Zitadel"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Autenticação bem-sucedida",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Parâmetros inválidos",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "missing_code"
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "No authorization code provided"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Erro no servidor",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "server_error"
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Error processing authentication"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/auth/logout": {
+        "post": {
+          "tags": ["auth"],
+          "summary": "Encerra a sessão do usuário",
+          "description": "Revoga os tokens de acesso e remove cookies de sessão",
+          "responses": {
+            "200": {
+              "description": "Logout bem-sucedido",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/admin/sessions": {
+        "get": {
+          "tags": ["admin"],
+          "summary": "Lista todos os usuários com suas sessões",
+          "description": "Retorna uma lista de todos os usuários do sistema com suas sessões ativas. Apenas acessível para usuários admin.",
+          "responses": {
+            "200": {
+              "description": "Lista de usuários com sessões",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "users": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "example": "1"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "João Silva"
+                            },
+                            "email": {
+                              "type": "string",
+                              "example": "joao@example.com"
+                            },
+                            "role": {
+                              "type": "string",
+                              "example": "teacher"
+                            },
+                            "schools": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "example": ["Escola A", "Escola B"]
+                            },
+                            "sessions": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/Session"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "403": {
+              "description": "Acesso negado",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Unauthorized"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "post": {
+          "tags": ["admin"],
+          "summary": "Encerra sessões de usuários",
+          "description": "Termina uma sessão específica ou todas as sessões de um usuário. Apenas acessível para usuários admin.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["userId"],
+                  "properties": {
+                    "userId": {
+                      "type": "string",
+                      "example": "1"
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "example": "s1"
+                    },
+                    "terminateAll": {
+                      "type": "boolean",
+                      "example": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Sessões encerradas com sucesso",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Session s1 for user 1 terminated"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Parâmetros inválidos",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "User ID is required"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "403": {
+              "description": "Acesso negado",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Unauthorized"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "User": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "1"
+            },
+            "name": {
+              "type": "string",
+              "example": "João Silva"
+            },
+            "email": {
+              "type": "string",
+              "example": "joao@example.com"
+            },
+            "role": {
+              "type": "string",
+              "example": "teacher"
+            },
+            "schools": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "example": ["Escola A", "Escola B"]
+            },
+            "profile": {
+              "type": "object",
+              "properties": {
+                "given_name": {
+                  "type": "string",
+                  "example": "João"
+                },
+                "family_name": {
+                  "type": "string",
+                  "example": "Silva"
+                },
+                "preferred_username": {
+                  "type": "string",
+                  "example": "joaosilva"
+                }
+              }
+            }
+          }
+        },
+        "Session": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "s1"
+            },
+            "device": {
+              "type": "string",
+              "example": "Chrome em Windows"
+            },
+            "lastActive": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2023-06-15T14:30:00Z"
+            }
+          }
+        }
+      }
+    }
+  }
