@@ -6,6 +6,20 @@
 
 Este projeto implementa um sistema de autenticação e gerenciamento de sessões para a plataforma Teachy, utilizando Next.js como framework principal e Zitadel como Identity Provider (IdP). O sistema é projetado para ser escalável, seguro e fácil de manter.
 
+## 📸 Evidências do Sistema
+
+### Home
+
+![Home](./assets/evidence/home.png)
+
+### Login
+
+![Tela de Login](./assets/evidence/login.png)
+
+### Dashboard
+
+![Dashboard](./assets/evidence/dashboard.png)
+
 ## 🔧 Configuração
 
 ### Pré-requisitos
